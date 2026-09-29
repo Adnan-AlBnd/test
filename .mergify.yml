@@ -1,7 +1,11 @@
+queue_rules:
+  - name: default
+    merge_conditions:
+      - check-success=race-check
+
 pull_request_rules:
-  - name: ssti-detect
+  - name: queue-default
     conditions:
       - base=main
     actions:
-      comment:
-        message: "SSTI-PROBE-RESULT: {{ 7*7 }} :END"
+      queue:
